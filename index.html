@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MPTI 导师人格鉴定</title>
+  <style>
+    :root {
+      --bg: #f5f6fa;
+      --panel: #ffffff;
+      --text: #1a1e2e;
+      --muted: #6b7084;
+      --line: #dde0ea;
+      --soft: #eceef6;
+      --accent: #0f766e;
+      --accent-strong: #115e59;
+      --shadow: 0 16px 40px rgba(17, 94, 89, 0.08);
+      --radius: 22px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(circle at top left, #e9f8f4 0, #f5f6fa 34%, #eff4f2 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .shell {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 24px 16px 56px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 28px;
+      margin-top: 20px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -60px;
+      top: -60px;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, rgba(15, 118, 110, 0.14), rgba(15, 118, 110, 0.02));
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--accent-strong);
+      border: 1px solid var(--line);
+      background: var(--soft);
+      border-radius: 999px;
+      padding: 8px 12px;
+      margin-bottom: 16px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    .hero h1 {
+      font-size: clamp(28px, 5vw, 52px);
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      max-width: 720px;
+    }
+
+    .hero .sub {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.75;
+      max-width: 760px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .hero-minimal {
+      min-height: 48vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 42px 20px;
+    }
+
+    .hero-minimal::after {
+      display: none;
+    }
+
+    .hero-minimal h1 {
+      max-width: none;
+      margin: 0;
+    }
+
+    .hero-actions-single {
+      justify-content: center;
+      margin-top: 28px;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, opacity 0.16s ease;
+      font: inherit;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+      transform: none;
+    }
+
+    .btn-primary {
+      background: var(--accent-strong);
+      color: #fff;
+      padding: 14px 20px;
+      border-radius: 14px;
+      box-shadow: 0 12px 30px rgba(17, 94, 89, 0.18);
+      font-weight: 700;
+    }
+
+    .btn-secondary {
+      background: #fff;
+      color: var(--accent-strong);
+      padding: 14px 20px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      font-weight: 700;
+    }
+
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    .test-wrap,
+    .result-wrap {
+      margin-top: 22px;
+      padding: 22px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .progress {
+      flex: 1;
+      min-width: 240px;
+      height: 10px;
+      background: #ececf4;
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress > span {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, #34d399, #0f766e);
+      border-radius: inherit;
+      transition: width 0.22s ease;
+    }
+
+    .progress-text {
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .question-list {
+      display: grid;
+      gap: 16px;
+    }
+
+    .question {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      background: linear-gradient(180deg, #ffffff, #fbfbfe);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .question-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+    }
+
+    .question-title {
+      font-size: 16px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+    }
+
+    .options {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .option {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+      transition: border-color 0.16s ease, background 0.16s ease, transform 0.16s ease;
+    }
+
+    .option:hover {
+      border-color: #7dd3c7;
+      background: #f3fbf9;
+    }
+
+    .option input {
+      margin-top: 3px;
+      accent-color: var(--accent-strong);
+      transform: scale(1.1);
+      flex-shrink: 0;
+    }
+
+    .option-code {
+      font-weight: 800;
+      color: var(--accent-strong);
+      min-width: 22px;
+    }
+
+    .actions-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+      padding-top: 6px;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .nav-btns {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .result-layout {
+      display: grid;
+      gap: 18px;
+    }
+
+    .result-top {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .poster-box,
+    .type-box,
+    .dim-box,
+    .note-box {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      background: linear-gradient(180deg, #ffffff, #fbfbfe);
+    }
+
+    .poster-box {
+      display: grid;
+      grid-template-rows: 1fr auto;
+      min-height: 280px;
+      overflow: hidden;
+      position: relative;
+      background: radial-gradient(circle at top right, rgba(15, 118, 110, 0.14), rgba(15, 118, 110, 0) 40%), linear-gradient(180deg, #ffffff, #f7f7fc);
+    }
+
+    .poster-box::after {
+      content: "";
+      position: absolute;
+      right: -46px;
+      bottom: -46px;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, rgba(15, 118, 110, 0.12), rgba(15, 118, 110, 0.01));
+      pointer-events: none;
+    }
+
+    .poster-media {
+      position: relative;
+      z-index: 1;
+      min-height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .poster-image {
+      width: 100%;
+      min-height: 220px;
+      max-height: 460px;
+      object-fit: contain;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.75);
+    }
+
+    .poster-fallback {
+      display: none;
+      width: 100%;
+      min-height: 220px;
+      border-radius: 18px;
+      border: 1px dashed rgba(17, 94, 89, 0.24);
+      background: linear-gradient(135deg, rgba(15, 118, 110, 0.08), rgba(16, 185, 129, 0.04));
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 8px;
+      text-align: center;
+      color: var(--accent-strong);
+      padding: 24px;
+    }
+
+    .poster-fallback strong {
+      font-size: clamp(28px, 6vw, 46px);
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .poster-fallback span {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .poster-box.no-image .poster-image {
+      display: none;
+    }
+
+    .poster-box.no-image .poster-fallback {
+      display: flex;
+    }
+
+    .poster-caption {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.8;
+      position: relative;
+      z-index: 1;
+    }
+
+    .type-kicker {
+      font-size: 12px;
+      color: var(--accent-strong);
+      margin-bottom: 8px;
+      letter-spacing: 0.06em;
+    }
+
+    .type-name {
+      font-size: clamp(28px, 5vw, 44px);
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--accent-strong), #10b981);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .type-subname {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .match {
+      margin-top: 18px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 10px 14px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      color: var(--accent-strong);
+      font-weight: 700;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .type-desc-inline {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+
+    .type-desc-inline p {
+      color: #2a2e42;
+      font-size: 14px;
+      line-height: 1.85;
+      white-space: pre-wrap;
+    }
+
+    .dim-box h3,
+    .note-box h3 {
+      font-size: 16px;
+      margin-bottom: 12px;
+    }
+
+    .dim-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .dim-item {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      background: #fff;
+    }
+
+    .dim-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .dim-item-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .dim-item-score {
+      color: var(--accent-strong);
+      font-weight: 800;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .dim-item p,
+    .note-box p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .result-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 22px;
+    }
+
+    .result-action-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+
+    @media (max-width: 860px) {
+      .result-top {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .shell {
+        min-height: 100dvh;
+        padding: 10px 10px 24px;
+      }
+
+      .hero,
+      .test-wrap,
+      .result-wrap {
+        padding: 14px;
+      }
+
+      #intro.screen.active,
+      #test.screen.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100dvh - 34px);
+      }
+
+      #intro .hero-minimal,
+      #test .test-wrap {
+        width: 100%;
+        margin-top: 0;
+      }
+
+      .hero-minimal {
+        min-height: min(72dvh, 620px);
+        padding: 28px 14px;
+      }
+
+      .hero h1 {
+        font-size: 28px;
+      }
+
+      .eyebrow {
+        font-size: 11px;
+        padding: 6px 10px;
+      }
+
+      .hero-actions-single {
+        margin-top: 20px;
+      }
+
+      .btn-primary,
+      .btn-secondary {
+        padding: 12px 16px;
+        font-size: 14px;
+        border-radius: 12px;
+      }
+
+      #test .test-wrap {
+        max-height: calc(100dvh - 34px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .topbar {
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+
+      .progress {
+        min-width: 0;
+        height: 8px;
+      }
+
+      .progress-text {
+        font-size: 12px;
+      }
+
+      .question-list {
+        gap: 12px;
+      }
+
+      .question {
+        padding: 14px;
+        border-radius: 14px;
+      }
+
+      .question-title {
+        font-size: 14px;
+      }
+
+      .options {
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .option {
+        padding: 11px 12px;
+        border-radius: 12px;
+        gap: 10px;
+      }
+
+      .actions-bottom {
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .result-layout {
+        gap: 14px;
+      }
+
+      .poster-box,
+      .type-box,
+      .dim-box,
+      .note-box {
+        border-radius: 14px;
+      }
+
+      .poster-box {
+        min-height: 200px;
+        padding: 14px;
+      }
+
+      .poster-image,
+      .poster-fallback {
+        min-height: 160px;
+        border-radius: 14px;
+      }
+
+      .type-box,
+      .dim-box,
+      .note-box {
+        padding: 14px;
+      }
+
+      .type-name {
+        font-size: clamp(22px, 6vw, 32px);
+      }
+
+      .result-action-group {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .result-action-group button {
+        width: 100%;
+        min-width: 0;
+        padding: 10px 6px;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="mptiApp" class="shell">
+    <section id="intro" class="screen active">
+      <div class="hero card hero-minimal">
+        <div class="eyebrow">MPTI · Mentor Personality Type Indicator</div>
+        <h1>测测你的导师到底是哪种带组生物</h1>
+        <p class="sub">站在学生视角，用日常行为题识别导师人格。不是严肃评价系统，更像一份高效、克制但不失礼貌的学术圈段子生成器。</p>
+        <div class="hero-actions hero-actions-single">
+          <button id="startBtn" class="btn-primary">开始观察</button>
+          <button id="galleryBtn" class="btn-secondary">导师图鉴</button>
+          <button id="leaderboardBtn" class="btn-secondary">人格统计</button>
+        </div>
+        <div style="padding-top: 2rem; display: flex; flex-direction: column; color: var(--muted); font-size: 13px;">
+          <span>MPTI · 导师人格鉴定</span>
+          <span>5 大模型 · 15 个维度 · 26 种导师人格</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="test" class="screen">
+      <div class="test-wrap card">
+        <div class="topbar">
+          <div class="progress"><span id="progressBar"></span></div>
+          <div class="progress-text" id="progressText">0 / 31</div>
+        </div>
+
+        <div id="questionList" class="question-list"></div>
+
+        <div class="actions-bottom">
+          <div class="hint" id="testHint"></div>
+          <div class="nav-btns">
+            <button id="prevBtn" class="btn-secondary">上一题</button>
+            <button id="nextBtn" class="btn-secondary">下一题</button>
+            <button id="backIntroBtn" class="btn-secondary">返回首页</button>
+            <button id="submitBtn" class="btn-primary" disabled>提交并查看结果</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="result" class="screen">
+      <div class="result-wrap card">
+        <div class="result-layout">
+          <div class="result-top">
+            <div class="poster-box" id="posterBox">
+              <div class="poster-media">
+                <img id="posterImage" class="poster-image" alt="导师人格结果图" />
+                <div id="posterFallback" class="poster-fallback"></div>
+              </div>
+              <div id="posterCaption" class="poster-caption"></div>
+            </div>
+
+            <div class="type-box">
+              <div class="type-kicker" id="resultModeKicker">你抽到的导师人格</div>
+              <div class="type-name" id="resultTypeName">KING（王者导师）</div>
+              <div class="match" id="matchBadge">匹配度 92%</div>
+              <div class="type-subname" id="resultTypeSub"></div>
+              <div class="type-desc-inline">
+                <p id="resultDesc"></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="dim-box">
+            <h3>十五维度观测结果</h3>
+            <div id="dimList" class="dim-list"></div>
+          </div>
+
+          <div class="note-box">
+            <h3>友情提示</h3>
+            <p id="funNote">本测试仅供娱乐。你可以拿去和同门对答案，但不要拿它代替真正的沟通。</p>
+          </div>
+
+          <div class="result-actions">
+            <div class="result-action-group">
+              <button id="restartBtn" class="btn-primary">再测一次</button>
+              <button id="resultLeaderboardBtn" class="btn-secondary">排行榜</button>
+              <button id="resultStatsBtn" class="btn-secondary">总览统计</button>
+              <button id="toTopBtn" class="btn-secondary">回到首页</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="./assets/mpti-data.js"></script>
+  <script src="./assets/mpti-test.js"></script>
+</body>
+</html>

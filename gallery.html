@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MPTI 导师人格图鉴</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: #08131b;
+      color: #e0f2f1;
+      min-height: 100vh;
+    }
+
+    .header {
+      text-align: center;
+      padding: 48px 20px 32px;
+    }
+
+    .header h1 {
+      font-size: 36px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #2dd4bf, #99f6e4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header p {
+      margin-top: 8px;
+      color: #8aa4a0;
+      font-size: 14px;
+    }
+
+    .header-actions {
+      margin-top: 18px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0 16px;
+      border-radius: 999px;
+      border: 1px solid #164e47;
+      background: #0c1d22;
+      color: #d1fae5;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .nav-btn:hover {
+      transform: translateY(-1px);
+      border-color: #14b8a6;
+      background: #0f262c;
+    }
+
+    .nav-btn.primary {
+      background: linear-gradient(135deg, #2dd4bf, #0f766e);
+      border-color: transparent;
+      color: #03231f;
+    }
+
+    .filters {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 0 20px 32px;
+    }
+
+    .filter-btn {
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid #164e47;
+      background: #0c1d22;
+      color: #9ec6c0;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .filter-btn:hover {
+      border-color: #14b8a6;
+      color: #ccfbf1;
+    }
+
+    .filter-btn.active {
+      background: #0f766e;
+      color: #fff;
+      border-color: #0f766e;
+    }
+
+    .grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px 60px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: #0d2026;
+      border: 1px solid #16333a;
+      border-radius: 16px;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(20, 184, 166, 0.15);
+    }
+
+    .card-img-wrap {
+      width: 100%;
+      aspect-ratio: 1;
+      background: #10282f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .card-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .card-fallback {
+      width: calc(100% - 24px);
+      height: calc(100% - 24px);
+      margin: 12px;
+      border-radius: 18px;
+      border: 1px dashed rgba(45, 212, 191, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 8px;
+      color: #5eead4;
+      background: linear-gradient(135deg, rgba(45, 212, 191, 0.1), rgba(45, 212, 191, 0.02));
+      text-align: center;
+      padding: 16px;
+    }
+
+    .card-fallback strong {
+      font-size: 28px;
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .card-fallback span {
+      color: #9ec6c0;
+      font-size: 12px;
+    }
+
+    .card-body {
+      padding: 14px;
+    }
+
+    .card-code {
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .card-cn {
+      font-size: 13px;
+      color: #9ec6c0;
+      margin-top: 2px;
+    }
+
+    .card-intro {
+      font-size: 12px;
+      color: #7a9692;
+      margin-top: 8px;
+      line-height: 1.6;
+    }
+
+    .rarity-tag {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    .rarity-legendary {
+      background: linear-gradient(135deg, #f59e0b, #f97316);
+      color: #000;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+    }
+
+    .rarity-epic {
+      background: linear-gradient(135deg, #a855f7, #7c3aed);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
+    }
+
+    .rarity-rare {
+      background: linear-gradient(135deg, #3b82f6, #0ea5e9);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.35);
+    }
+
+    .rarity-uncommon {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: #fff;
+    }
+
+    .rarity-common {
+      background: #22343a;
+      color: #a9bfbb;
+    }
+
+    .rarity-hidden {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%,
+      100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.7;
+      }
+    }
+
+    .stats {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px 40px;
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-num {
+      font-size: 28px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #2dd4bf, #99f6e4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #7a9692;
+      margin-top: 2px;
+    }
+
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 0 20px 24px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #7a9692;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    @media (max-width: 600px) {
+      .header h1 {
+        font-size: 28px;
+      }
+
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+
+      .card-body {
+        padding: 10px;
+      }
+
+      .card-code {
+        font-size: 15px;
+      }
+
+      .card-intro {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>MPTI 导师人格图鉴</h1>
+    <p>26 种导师人格 · 先认清生态，再决定怎么汇报</p>
+    <div class="header-actions">
+      <a class="nav-btn primary" href="./index.html">进入测试</a>
+      <a class="nav-btn" href="./leaderboard.html">查看统计</a>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-item"><div class="stat-num">26</div><div class="stat-label">人格总数</div></div>
+    <div class="stat-item"><div class="stat-num">5</div><div class="stat-label">大模型</div></div>
+    <div class="stat-item"><div class="stat-num">15</div><div class="stat-label">维度</div></div>
+    <div class="stat-item"><div class="stat-num">2</div><div class="stat-label">隐藏人格</div></div>
+  </div>
+
+  <div class="legend" id="legend"></div>
+  <div class="filters" id="filters"></div>
+  <div class="grid" id="grid"></div>
+
+  <script src="./assets/mpti-data.js"></script>
+  <script src="./assets/mpti-gallery.js"></script>
+</body>
+</html>

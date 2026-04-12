@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MPTI 导师人格排行榜</title>
+  <style>
+    :root {
+      --bg: #09111f;
+      --panel: rgba(10, 24, 34, 0.86);
+      --text: #effcfb;
+      --muted: #90aaa7;
+      --line: rgba(138, 180, 172, 0.18);
+      --accent: #5eead4;
+      --accent-soft: rgba(94, 234, 212, 0.16);
+      --gold: #f6c768;
+      --silver: #c6fff2;
+      --bronze: #f0a06b;
+      --shadow: 0 18px 48px rgba(0, 0, 0, 0.24);
+      --radius: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at top left, rgba(45, 212, 191, 0.22), transparent 28%), radial-gradient(circle at top right, rgba(246, 199, 104, 0.14), transparent 20%), linear-gradient(180deg, #09111f 0%, #0b1728 48%, #08101d 100%);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 56px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .hero {
+      padding: 28px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -60px;
+      top: -60px;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(94, 234, 212, 0.28) 0%, rgba(94, 234, 212, 0) 68%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--line);
+      color: #b8e2dd;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .hero-copy h1 {
+      margin: 0;
+      font-size: clamp(32px, 5vw, 56px);
+      line-height: 1.02;
+      letter-spacing: -0.04em;
+    }
+
+    .hero-copy p {
+      margin: 14px 0 0;
+      max-width: 700px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.8;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .link-btn,
+    .ghost-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 18px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      font: inherit;
+      cursor: pointer;
+      transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+    }
+
+    .link-btn:hover,
+    .ghost-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(94, 234, 212, 0.55);
+    }
+
+    .link-btn {
+      background: linear-gradient(135deg, #5eead4, #14b8a6);
+      border-color: transparent;
+      color: #03231f;
+      font-weight: 800;
+    }
+
+    .ghost-btn {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+    }
+
+    .meta-row {
+      margin-top: 22px;
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .summary-grid {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .summary-card {
+      padding: 20px;
+    }
+
+    .summary-label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .summary-value {
+      margin-top: 10px;
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .summary-note {
+      margin-top: 8px;
+      color: #b7dbd6;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .panel {
+      margin-top: 18px;
+      padding: 22px;
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 26px;
+      letter-spacing: -0.03em;
+    }
+
+    .panel-head p,
+    .panel-head .status {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .podium {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .podium-card {
+      position: relative;
+      min-height: 100%;
+      padding: 18px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+      overflow: hidden;
+    }
+
+    .podium-card.rank-1 {
+      box-shadow: inset 0 0 0 1px rgba(246, 199, 104, 0.25);
+    }
+
+    .podium-card.rank-2 {
+      box-shadow: inset 0 0 0 1px rgba(198, 255, 242, 0.22);
+    }
+
+    .podium-card.rank-3 {
+      box-shadow: inset 0 0 0 1px rgba(240, 160, 107, 0.24);
+    }
+
+    .podium-rank {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-weight: 900;
+      color: #09111f;
+    }
+
+    .podium-card.rank-1 .podium-rank {
+      background: var(--gold);
+    }
+
+    .podium-card.rank-2 .podium-rank {
+      background: var(--silver);
+    }
+
+    .podium-card.rank-3 .podium-rank {
+      background: var(--bronze);
+    }
+
+    .podium-image {
+      width: 100%;
+      aspect-ratio: 1;
+      margin-top: 14px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .podium-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .podium-fallback,
+    .thumb-fallback {
+      width: calc(100% - 18px);
+      height: calc(100% - 18px);
+      margin: 9px;
+      border-radius: 16px;
+      border: 1px dashed rgba(94, 234, 212, 0.24);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 6px;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(94, 234, 212, 0.08), rgba(94, 234, 212, 0.02));
+      color: #5eead4;
+      padding: 12px;
+    }
+
+    .podium-fallback strong {
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .podium-fallback span {
+      font-size: 12px;
+      color: #b7dbd6;
+    }
+
+    .podium-code {
+      margin-top: 14px;
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+    }
+
+    .podium-cn {
+      margin-top: 2px;
+      color: #bfded9;
+      font-size: 14px;
+    }
+
+    .podium-stats {
+      margin-top: 12px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .mini-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #d5f6f0;
+      font-size: 12px;
+    }
+
+    .leaderboard-table {
+      display: grid;
+      gap: 10px;
+    }
+
+    .leaderboard-row {
+      display: grid;
+      grid-template-columns: 68px minmax(0, 1.5fr) minmax(210px, 232px) minmax(160px, 1fr);
+      gap: 14px;
+      align-items: center;
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .leaderboard-row[data-rank="1"] {
+      background: rgba(246, 199, 104, 0.08);
+    }
+
+    .leaderboard-row[data-rank="2"] {
+      background: rgba(198, 255, 242, 0.07);
+    }
+
+    .leaderboard-row[data-rank="3"] {
+      background: rgba(240, 160, 107, 0.07);
+    }
+
+    .rank-badge {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(94, 234, 212, 0.12);
+      color: #dce7ff;
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .persona-cell {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .persona-thumb {
+      width: 56px;
+      height: 56px;
+      flex: 0 0 auto;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.05);
+      position: relative;
+    }
+
+    .persona-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .thumb-fallback strong {
+      font-size: 14px;
+    }
+
+    .persona-info {
+      min-width: 0;
+    }
+
+    .persona-code {
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+
+    .persona-name {
+      margin-top: 2px;
+      color: #b7dbd6;
+      font-size: 13px;
+    }
+
+    .stats-cell {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      align-items: center;
+    }
+
+    .count-cell,
+    .share-cell {
+      font-size: 20px;
+      font-weight: 800;
+      text-align: right;
+    }
+
+    .count-cell small,
+    .share-cell small {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .bar-cell {
+      display: grid;
+      gap: 6px;
+    }
+
+    .bar-track {
+      position: relative;
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .bar-fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: var(--bar, 0%);
+      border-radius: inherit;
+      background: linear-gradient(90deg, #f6c768, #5eead4);
+    }
+
+    .bar-label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .empty-state,
+    .error-state {
+      padding: 24px;
+      border-radius: 18px;
+      border: 1px dashed var(--line);
+      color: #c9efe9;
+      background: rgba(255, 255, 255, 0.03);
+      line-height: 1.8;
+    }
+
+    @media (max-width: 980px) {
+      .summary-grid,
+      .podium {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .summary-grid .summary-card:last-child,
+      .podium .podium-card:last-child {
+        grid-column: span 2;
+      }
+
+      .leaderboard-row {
+        grid-template-columns: 60px minmax(0, 1fr) minmax(176px, 196px);
+      }
+
+      .bar-cell {
+        grid-column: 2 / -1;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .shell {
+        width: min(100%, calc(100% - 20px));
+        padding-top: 14px;
+      }
+
+      .hero,
+      .panel,
+      .summary-card {
+        padding: 18px;
+      }
+
+      .hero-copy h1 {
+        font-size: 34px;
+      }
+
+      .summary-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .podium {
+        grid-template-columns: 1fr;
+      }
+
+      .leaderboard-row {
+        grid-template-columns: 44px minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: start;
+      }
+
+      .stats-cell {
+        grid-column: 3;
+        gap: 8px;
+        align-self: start;
+        justify-self: end;
+      }
+
+      .bar-cell {
+        grid-column: 2 / -1;
+      }
+
+      .count-cell,
+      .share-cell {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero card">
+      <div class="eyebrow">MPTI Stats Board</div>
+      <div class="hero-top">
+        <div class="hero-copy">
+          <h1>导师人格排行榜</h1>
+          <p>看看学生们最常测出哪种导师。数据只统计测试结果分布，不记录个人信息。</p>
+        </div>
+
+        <div class="hero-actions">
+          <a class="link-btn" href="./index.html">返回测试</a>
+          <a class="ghost-btn" href="./gallery.html">导师图鉴</a>
+          <button id="refreshBtn" class="ghost-btn" type="button">刷新统计</button>
+        </div>
+      </div>
+
+      <div class="meta-row">
+        <span id="updatedAt">最近更新：读取中...</span>
+      </div>
+    </section>
+
+    <section id="summaryStats" class="summary-grid">
+      <article class="summary-card card">
+        <div class="summary-label">访问请求数</div>
+        <div class="summary-value" id="totalVisits">--</div>
+        <div class="summary-note">首页被打开的累计次数。</div>
+      </article>
+
+      <article class="summary-card card">
+        <div class="summary-label">完成测试数</div>
+        <div class="summary-value" id="totalResults">--</div>
+        <div class="summary-note">成功测完并进入结果页的次数。</div>
+      </article>
+
+      <article class="summary-card card">
+        <div class="summary-label">已命中人格数</div>
+        <div class="summary-value" id="uniquePersonasHit">--</div>
+        <div class="summary-note">至少被测出来过一次的人格数量。</div>
+      </article>
+
+      <article class="summary-card card">
+        <div class="summary-label">当前榜首</div>
+        <div class="summary-value" id="leaderName">--</div>
+        <div class="summary-note" id="leaderNote">等待统计数据...</div>
+      </article>
+    </section>
+
+    <section id="rankingPanel" class="panel card">
+      <div class="panel-head">
+        <div>
+          <h2>榜单前三</h2>
+          <p>按最终人格结果的累计次数排序。</p>
+        </div>
+        <div class="status" id="podiumStatus">正在加载...</div>
+      </div>
+      <div id="podium" class="podium"></div>
+    </section>
+
+    <section class="panel card">
+      <div class="panel-head">
+        <div>
+          <h2>完整排行榜</h2>
+        </div>
+        <div class="status" id="tableStatus">正在加载...</div>
+      </div>
+      <div id="leaderboardTable" class="leaderboard-table"></div>
+    </section>
+  </div>
+
+  <script src="./assets/mpti-data.js"></script>
+  <script src="./assets/mpti-leaderboard.js"></script>
+</body>
+</html>
