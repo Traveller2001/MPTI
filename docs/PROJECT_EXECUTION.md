@@ -31,7 +31,7 @@ MPTI 的目标不是“严肃评估导师”，而是做一个站在学生视角
 本次迁移没有做“仅改文案”的浅拷贝，而是做了可继续扩展的内容层迁移：
 
 1. 保留原有页面结构与用户操作路径
-2. 将人格内容、题库、维度解释抽到 `assets/mpti-data.js`
+2. 将人格内容、题库、维度解释抽到 `assets/mpti-data.v20260413a.js`
 3. 将首页答题逻辑、图鉴逻辑、排行榜逻辑拆成独立脚本
 4. 后端统计函数整体复制一份并切到 `MPTI` 独立存储桶
 5. 图片层不强依赖现成素材，先支持缺图占位，再通过 Prompt 批量补图
@@ -133,10 +133,10 @@ MPTI 延续 5 大模型 × 3 维度 = 15 维结构：
 - `index.html`：测试主页面
 - `gallery.html`：人格图鉴页
 - `leaderboard.html`：结果统计页
-- `assets/mpti-data.js`：题库、维度、人格库、匹配模板、解释文案
-- `assets/mpti-test.js`：答题、匹配、渲染、埋点
-- `assets/mpti-gallery.js`：图鉴渲染
-- `assets/mpti-leaderboard.js`：排行榜渲染
+- `assets/mpti-data.v20260413a.js`：题库、维度、人格库、匹配模板、解释文案
+- `assets/mpti-test.v20260413a.js`：答题、匹配、渲染、埋点
+- `assets/mpti-gallery.v20260413a.js`：图鉴渲染
+- `assets/mpti-leaderboard.v20260413a.js`：排行榜渲染
 
 ### 统计
 
