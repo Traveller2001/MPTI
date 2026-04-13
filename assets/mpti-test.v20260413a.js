@@ -304,7 +304,7 @@
           distance += diff;
           if (diff === 0) exact += 1;
         }
-        const similarity = Math.max(0, Math.round((1 - distance / 30) * 100));
+        const similarity = Math.max(0, Math.round((1 - distance / (dimensionOrder.length * 2)) * 100));
         return { ...type, ...typeLibrary[type.code], distance, exact, similarity };
       })
       .sort((left, right) => {
@@ -317,7 +317,7 @@
 
     let finalType = bestNormal;
     let modeKicker = "你抽到的导师人格";
-    let badge = `匹配度 ${bestNormal.similarity}% · 精准命中 ${bestNormal.exact}/15 维`;
+    let badge = `匹配度 ${bestNormal.similarity}% · 精准命中 ${bestNormal.exact}/${dimensionOrder.length} 维`;
     let sub = "标准人格模板与当前观察结果比较接近，这份结果可以视为这位导师的第一印象画像。";
     let special = false;
     let secondaryType = null;
