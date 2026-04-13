@@ -40,6 +40,23 @@
   const nextBtn = document.getElementById("nextBtn");
 
   const insertQuestion = specialQuestions.find((question) => question.id === specialLogic.insertQuestionId);
+  const questionMetaById = Object.create(null);
+
+  questions.forEach((question, index) => {
+    questionMetaById[question.id] = {
+      questionNumber: index + 1,
+      questionKind: "regular",
+      dimension: question.dim || null
+    };
+  });
+
+  specialQuestions.forEach((question, index) => {
+    questionMetaById[question.id] = {
+      questionNumber: questions.length + index + 1,
+      questionKind: question.kind || "special",
+      dimension: question.dim || null
+    };
+  });
 
   function canUseAnalytics() {
     return typeof fetch === "function" && /^https?:$/.test(window.location.protocol);
@@ -76,8 +93,41 @@
       personaCode: result.finalType.code,
       personaName: result.finalType.cn,
       special: result.special,
-      similarity: result.bestNormal ? result.bestNormal.similarity : null
+      similarity: result.bestNormal ? result.bestNormal.similarity : null,
+      answers: buildResultAnswers()
     });
+  }
+
+  function buildResultAnswers() {
+    return getVisibleQuestions()
+      .filter((question) => app.answers[question.id] !== undefined)
+      .map((question, displayIndex) => {
+        const selectedValue = Number(app.answers[question.id]);
+        const selectedOptionIndex = question.options.findIndex((option) => option.value === selectedValue);
+        const selectedOption = selectedOptionIndex === -1 ? null : question.options[selectedOptionIndex];
+        const questionMeta = questionMetaById[question.id] || {};
+
+        return {
+          questionId: question.id,
+          questionNumber: questionMeta.questionNumber ?? null,
+          questionKind: questionMeta.questionKind || (question.kind || "regular"),
+          dimension: questionMeta.dimension ?? null,
+          displayOrder: displayIndex + 1,
+          selectedValue,
+          selectedOptionIndex: selectedOptionIndex === -1 ? null : selectedOptionIndex + 1,
+          selectedOptionCode:
+            selectedOptionIndex === -1 ? null : (["A", "B", "C", "D"][selectedOptionIndex] || String(selectedOptionIndex + 1)),
+          selectedOptionLabel: selectedOption ? selectedOption.label : ""
+        };
+      })
+      .sort((left, right) => {
+        if (left.questionNumber !== right.questionNumber) {
+          if (left.questionNumber === null) return 1;
+          if (right.questionNumber === null) return -1;
+          return left.questionNumber - right.questionNumber;
+        }
+        return left.displayOrder - right.displayOrder;
+      });
   }
 
   function showScreen(name) {

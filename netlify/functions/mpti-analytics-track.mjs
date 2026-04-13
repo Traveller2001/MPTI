@@ -11,6 +11,42 @@ import {
 
 const ALLOWED_RESULT_CODES = new Set(PERSONA_CODES);
 
+function normalizeString(value, fallback = "") {
+  return typeof value === "string" ? value : fallback;
+}
+
+function normalizePositiveInteger(value) {
+  const number = Number(value);
+  if (!Number.isInteger(number) || number <= 0) return null;
+  return number;
+}
+
+function normalizeNullableNumber(value) {
+  return Number.isFinite(value) ? value : null;
+}
+
+function normalizeAnswers(value) {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+
+      return {
+        questionId: normalizeString(item.questionId),
+        questionNumber: normalizePositiveInteger(item.questionNumber),
+        questionKind: normalizeString(item.questionKind),
+        dimension: normalizeString(item.dimension, null),
+        displayOrder: normalizePositiveInteger(item.displayOrder),
+        selectedValue: normalizePositiveInteger(item.selectedValue),
+        selectedOptionIndex: normalizePositiveInteger(item.selectedOptionIndex),
+        selectedOptionCode: normalizeString(item.selectedOptionCode, null),
+        selectedOptionLabel: normalizeString(item.selectedOptionLabel)
+      };
+    })
+    .filter((item) => item && item.questionId);
+}
+
 export default async (request) => {
   if (request.method !== "POST") {
     return json(
@@ -58,6 +94,7 @@ export default async (request) => {
         personaName: typeof payload.personaName === "string" ? payload.personaName : "",
         special: Boolean(payload.special),
         similarity: Number.isFinite(payload.similarity) ? payload.similarity : null,
+        answers: normalizeAnswers(payload.answers),
         recordedAt
       });
 

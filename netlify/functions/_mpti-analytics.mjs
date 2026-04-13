@@ -177,7 +177,7 @@ export async function loadSummarySnapshot(store) {
   };
 }
 
-async function listAllKeys(store, prefix) {
+export async function listAllKeys(store, prefix) {
   const keys = [];
   for await (const page of store.list({ prefix, paginate: true })) {
     for (const blob of page.blobs) {
