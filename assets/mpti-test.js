@@ -247,8 +247,8 @@
   }
 
   function sumToLevel(score) {
-    if (score <= 3) return "L";
-    if (score === 4) return "M";
+    if (score <= 1) return "L";
+    if (score === 2) return "M";
     return "H";
   }
 
@@ -316,10 +316,10 @@
       sub = `常规人格最近似 ${bestNormal.code}（${bestNormal.cn}），但系统判断“存在感异常”已经压过一切。`;
       special = true;
     } else if (bestNormal.similarity < 60) {
-      finalType = typeLibrary["404"];
+      finalType = typeLibrary["NULL"];
       modeKicker = "系统被导师风格绕晕了";
       badge = `标准人格库最近似仅 ${bestNormal.similarity}%`;
-      sub = "这位导师的人设组合过于复杂，系统拒绝草率下结论，于是给出了 404。";
+      sub = "这位导师的人设组合过于复杂，系统直接返回了 NullPointerException。";
       special = true;
     }
 
