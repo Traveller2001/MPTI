@@ -467,7 +467,7 @@
     triggerValue: 2,
     hiddenTypeCode: "WIFI"
   };
-  const imageAssetVersion = "20260413-webp512-square1";
+  const imageAssetVersion = "20260413-webp512-square2";
 
   Object.values(typeLibrary).forEach((type) => {
     type.image = `./images/${type.code}/${type.code}.webp?v=${imageAssetVersion}`;
