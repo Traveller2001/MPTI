@@ -470,6 +470,7 @@
 
   Object.values(typeLibrary).forEach((type) => {
     type.image = `./images/${type.code}/${type.code}.webp`;
+    type.imageFallback = `./images/${type.code}/${type.code}.png`;
   });
 
   window.MPTI_DATA = {

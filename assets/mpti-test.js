@@ -376,6 +376,8 @@
     const posterFallback = document.getElementById("posterFallback");
 
     posterImage.removeAttribute("src");
+    posterImage.dataset.fallbackSrc = type.imageFallback || "";
+    posterImage.dataset.fallbackTried = "";
     posterBox.classList.add("no-image");
     posterFallback.innerHTML = `
       <strong>${type.code}</strong>
@@ -390,6 +392,11 @@
       posterBox.classList.remove("no-image");
     };
     posterImage.onerror = () => {
+      if (!posterImage.dataset.fallbackTried && posterImage.dataset.fallbackSrc) {
+        posterImage.dataset.fallbackTried = "1";
+        posterImage.src = posterImage.dataset.fallbackSrc;
+        return;
+      }
       posterBox.classList.add("no-image");
     };
   }

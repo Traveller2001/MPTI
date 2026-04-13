@@ -19,6 +19,8 @@
   const majorModelsStat = document.getElementById("statMajorModels");
   const dimensionsStat = document.getElementById("statDimensions");
   const hiddenTypesStat = document.getElementById("statHiddenTypes");
+  const imageErrorHandler =
+    "if(!this.dataset.fallbackTried&&this.dataset.fallbackSrc){this.dataset.fallbackTried='1';this.src=this.dataset.fallbackSrc;return;}this.style.display='none';this.nextElementSibling.style.display='flex';";
 
   if (subtitle) {
     subtitle.textContent = `${types.length} 种导师人格 · 先认清生态，再决定怎么汇报`;
@@ -33,9 +35,10 @@
       <div class="card-img-wrap">
         <img
           src="${type.image}"
+          data-fallback-src="${type.imageFallback || ""}"
           alt="${type.code}"
           loading="lazy"
-          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          onerror="${imageErrorHandler}"
         />
         <div class="card-fallback" style="display:none;">
           <strong>${type.code}</strong>
