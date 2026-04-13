@@ -38,6 +38,20 @@
   const testHint = document.getElementById("testHint");
   const prevBtn = document.getElementById("prevBtn");
   const nextBtn = document.getElementById("nextBtn");
+  const introStatsLine = document.getElementById("introStatsLine");
+
+  const catalogStats = {
+    totalTypeCount: Object.keys(typeLibrary).length,
+    dimensionCount: Object.keys(dimensionMeta).length,
+    majorModelCount: new Set(Object.keys(dimensionMeta).map((key) => key.replace(/\d+$/, ""))).size,
+    baseQuestionCount: questions.length + 1
+  };
+
+  if (introStatsLine) {
+    introStatsLine.textContent = `${catalogStats.majorModelCount} 大模型 · ${catalogStats.dimensionCount} 个维度 · ${catalogStats.totalTypeCount} 种导师人格`;
+  }
+
+  progressText.textContent = `0 / ${catalogStats.baseQuestionCount}`;
 
   const insertQuestion = specialQuestions.find((question) => question.id === specialLogic.insertQuestionId);
   const questionMetaById = Object.create(null);

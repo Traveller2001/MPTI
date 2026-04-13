@@ -7,6 +7,11 @@
   const types = Object.values(data.typeLibrary);
   const typeMap = Object.fromEntries(types.map((type) => [type.code, type]));
   const numberFormatter = new Intl.NumberFormat("zh-CN");
+  const leaderboardIntro = document.getElementById("leaderboardIntro");
+
+  if (leaderboardIntro) {
+    leaderboardIntro.textContent = `看看学生们最常测出哪种导师。当前榜单覆盖 ${types.length} 种人格结果，数据只统计测试结果分布，不记录个人信息。`;
+  }
 
   function formatNumber(value) {
     return numberFormatter.format(value || 0);

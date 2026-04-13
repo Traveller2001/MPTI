@@ -8,7 +8,7 @@ import {
 
 const EXPORT_TOKEN_ENV_NAME = "MPTI_ANALYTICS_EXPORT_TOKEN";
 const QUESTION_IDS = [
-  ...Array.from({ length: 30 }, (_, index) => `q${index + 1}`),
+  ...Array.from({ length: 15 }, (_, index) => `q${index + 1}`),
   "ghost_gate_q1",
   "ghost_gate_q2"
 ];

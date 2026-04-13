@@ -705,7 +705,7 @@
         </div>
         <div style="padding-top: 2rem; display: flex; flex-direction: column; color: var(--muted); font-size: 13px;">
           <span>MPTI · 导师人格鉴定</span>
-          <span>5 大模型 · 15 个维度 · 26 种导师人格</span>
+          <span id="introStatsLine">人格库加载中...</span>
         </div>
       </div>
     </section>
@@ -714,7 +714,7 @@
       <div class="test-wrap card">
         <div class="topbar">
           <div class="progress"><span id="progressBar"></span></div>
-          <div class="progress-text" id="progressText">0 / 31</div>
+          <div class="progress-text" id="progressText">0 / --</div>
         </div>
 
         <div id="questionList" class="question-list"></div>
@@ -745,7 +745,7 @@
 
             <div class="type-box">
               <div class="type-kicker" id="resultModeKicker">你抽到的导师人格</div>
-              <div class="type-name" id="resultTypeName">KING（王者导师）</div>
+              <div class="type-name" id="resultTypeName">等待你的测试结果</div>
               <div class="match" id="matchBadge">匹配度 92%</div>
               <div class="type-subname" id="resultTypeSub"></div>
               <div class="type-desc-inline">

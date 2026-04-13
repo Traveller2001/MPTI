@@ -8,6 +8,25 @@
   const { typeLibrary, rarityMeta } = data;
   const types = Object.values(typeLibrary);
   let currentFilter = "all";
+  const dimensionCount = Object.keys(data.dimensionMeta || {}).length;
+  const majorModelCount = new Set(
+    Object.keys(data.dimensionMeta || {}).map((key) => key.replace(/\d+$/, ""))
+  ).size;
+  const hiddenTypeCount = types.filter((type) => type.rarity === "hidden").length;
+
+  const subtitle = document.getElementById("gallerySubtitle");
+  const totalTypesStat = document.getElementById("statTotalTypes");
+  const majorModelsStat = document.getElementById("statMajorModels");
+  const dimensionsStat = document.getElementById("statDimensions");
+  const hiddenTypesStat = document.getElementById("statHiddenTypes");
+
+  if (subtitle) {
+    subtitle.textContent = `${types.length} 种导师人格 · 先认清生态，再决定怎么汇报`;
+  }
+  if (totalTypesStat) totalTypesStat.textContent = String(types.length);
+  if (majorModelsStat) majorModelsStat.textContent = String(majorModelCount);
+  if (dimensionsStat) dimensionsStat.textContent = String(dimensionCount);
+  if (hiddenTypesStat) hiddenTypesStat.textContent = String(hiddenTypeCount);
 
   function renderMedia(type) {
     return `

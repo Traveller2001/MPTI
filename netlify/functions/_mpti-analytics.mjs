@@ -2,36 +2,28 @@ import { getStore } from "@netlify/blobs";
 
 export const STORE_NAME = "mpti-analytics-v1";
 export const SUMMARY_KEY = "summary/summary-v1.json";
-const SUMMARY_SCHEMA_VERSION = 1;
+const SUMMARY_SCHEMA_VERSION = 2;
 const MAX_SUMMARY_UPDATE_RETRIES = 8;
 
 export const PERSONA_CODES = [
-  "KING",
+  "GOAT",
   "CTRL",
-  "KPIX",
+  "PUSH",
   "CAKE",
-  "CASH",
-  "CAMP",
-  "FARM",
-  "NICE",
-  "SHLD",
-  "VOLC",
-  "PING",
-  "SWAN",
-  "MOSS",
-  "RISK",
-  "HOST",
-  "SPIN",
-  "JURY",
-  "OTTO",
-  "NANNY",
-  "MUTE",
-  "PILOT",
-  "CLOCK",
-  "BUDD",
-  "ADMIN",
-  "GHOST",
-  "404"
+  "ATM",
+  "ZOOM",
+  "AFK",
+  "GPS",
+  "TANK",
+  "BOOM",
+  "5G",
+  "YOLO",
+  "007",
+  "CPU",
+  "ZEN",
+  "REJ",
+  "WIFI",
+  "NULL"
 ];
 
 export function createAnalyticsStore() {
@@ -89,6 +81,7 @@ export function cloneSummary(summary) {
 export function normalizeSummary(summary) {
   const next = createEmptySummary();
   if (!summary || typeof summary !== "object") return next;
+  if (normalizeNonNegativeInteger(summary.schemaVersion) !== SUMMARY_SCHEMA_VERSION) return next;
 
   next.totalVisits = normalizeNonNegativeInteger(summary.totalVisits);
   next.totalResults = normalizeNonNegativeInteger(summary.totalResults);
@@ -170,6 +163,7 @@ export async function loadSummarySnapshot(store) {
   });
 
   if (entry === null) return null;
+  if (normalizeNonNegativeInteger(entry.data?.schemaVersion) !== SUMMARY_SCHEMA_VERSION) return null;
 
   return {
     summary: normalizeSummary(entry.data),
@@ -201,12 +195,11 @@ export async function rebuildSummaryFromEvents(store) {
 
   const resultKeys = await listAllKeys(store, "results/");
   for (const key of resultKeys) {
-    summary.totalResults += 1;
-
     const code = extractPersonaCode(key);
-    if (code && code in summary.counts) {
-      summary.counts[code] += 1;
-    }
+    if (!(code && code in summary.counts)) continue;
+
+    summary.totalResults += 1;
+    summary.counts[code] += 1;
 
     const timestamp = extractTimestamp(key);
     if (timestamp) {
@@ -222,18 +215,11 @@ export async function ensureSummarySnapshot(store) {
   if (existing) return existing;
 
   const rebuilt = await rebuildSummaryFromEvents(store);
-  const created = await store.setJSON(SUMMARY_KEY, rebuilt, { onlyIfNew: true });
-  if (created.modified) {
-    return {
-      summary: rebuilt,
-      etag: created.etag
-    };
-  }
-
-  const afterRace = await loadSummarySnapshot(store);
-  if (afterRace) return afterRace;
-
-  throw new Error("Failed to initialize analytics summary snapshot");
+  const updated = await store.setJSON(SUMMARY_KEY, rebuilt);
+  return {
+    summary: rebuilt,
+    etag: updated.etag
+  };
 }
 
 export async function updateSummarySnapshot(store, mutator) {

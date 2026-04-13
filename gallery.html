@@ -329,7 +329,7 @@
 <body>
   <div class="header">
     <h1>MPTI 导师人格图鉴</h1>
-    <p>26 种导师人格 · 先认清生态，再决定怎么汇报</p>
+    <p id="gallerySubtitle">人格库加载中...</p>
     <div class="header-actions">
       <a class="nav-btn primary" href="./index.html">进入测试</a>
       <a class="nav-btn" href="./leaderboard.html">查看统计</a>
@@ -337,10 +337,10 @@
   </div>
 
   <div class="stats">
-    <div class="stat-item"><div class="stat-num">26</div><div class="stat-label">人格总数</div></div>
-    <div class="stat-item"><div class="stat-num">5</div><div class="stat-label">大模型</div></div>
-    <div class="stat-item"><div class="stat-num">15</div><div class="stat-label">维度</div></div>
-    <div class="stat-item"><div class="stat-num">2</div><div class="stat-label">隐藏人格</div></div>
+    <div class="stat-item"><div id="statTotalTypes" class="stat-num">--</div><div class="stat-label">人格总数</div></div>
+    <div class="stat-item"><div id="statMajorModels" class="stat-num">--</div><div class="stat-label">大模型</div></div>
+    <div class="stat-item"><div id="statDimensions" class="stat-num">--</div><div class="stat-label">维度</div></div>
+    <div class="stat-item"><div id="statHiddenTypes" class="stat-num">--</div><div class="stat-label">隐藏人格</div></div>
   </div>
 
   <div class="legend" id="legend"></div>
