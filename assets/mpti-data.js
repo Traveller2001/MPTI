@@ -467,10 +467,11 @@
     triggerValue: 2,
     hiddenTypeCode: "WIFI"
   };
+  const imageAssetVersion = "20260413-webp512-square1";
 
   Object.values(typeLibrary).forEach((type) => {
-    type.image = `./images/${type.code}/${type.code}.webp`;
-    type.imageFallback = `./images/${type.code}/${type.code}.png`;
+    type.image = `./images/${type.code}/${type.code}.webp?v=${imageAssetVersion}`;
+    type.imageFallback = `./images/${type.code}/${type.code}.png?v=${imageAssetVersion}`;
   });
 
   window.MPTI_DATA = {
