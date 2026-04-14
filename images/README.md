@@ -21,16 +21,12 @@
 | PUSH | 催命判官 | images_todo/PUSH/ |
 | CAKE | 画饼大仙 | images_todo/CAKE/ |
 | ATM  | 行走经费机 | images_todo/ATM/ |
-| ZOOM | 组会永动机 | images_todo/ZOOM/ |
 | AFK  | 放养宗师 | images_todo/AFK/ |
 | GPS  | 全能保姆 | images_todo/GPS/ |
-| TANK | 护崽坦克 | images_todo/TANK/ |
 | BOOM | 情绪过山车 | images_todo/BOOM/ |
 | 5G   | 秒回战神 | images_todo/5G/ |
 | YOLO | 选题赌神 | images_todo/YOLO/ |
 | 007  | 全天候特工 | images_todo/007/ |
 | CPU  | 多线程行政 | images_todo/CPU/ |
-| ZEN  | 佛系宗师 | images_todo/ZEN/ |
-| REJ  | 审稿附体 | images_todo/REJ/ |
 | WIFI | 量子导师 | images_todo/WIFI/ |
 | NULL | 查无此导 | images_todo/NULL/ |
