@@ -22,6 +22,9 @@ export const PERSONA_CODES = [
   "CPU",
   "ZEN",
   "REJ",
+  "PUA",
+  "996",
+  "GRAB",
   "WIFI",
   "NULL"
 ];
