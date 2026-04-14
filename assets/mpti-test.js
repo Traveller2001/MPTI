@@ -260,14 +260,12 @@
     }
   }
 
-  function sumToLevel(score) {
-    if (score <= 1) return "L";
-    if (score === 2) return "M";
-    return "H";
+  function valueToLevel(value) {
+    return { 1: "L", 2: "M", 3: "H", 4: "X" }[value] || "M";
   }
 
   function levelNum(level) {
-    return { L: 1, M: 2, H: 3 }[level];
+    return { L: 1, M: 2, H: 3, X: 4 }[level];
   }
 
   function parsePattern(pattern) {
@@ -290,10 +288,10 @@
     });
 
     Object.entries(rawScores).forEach(([dimension, score]) => {
-      levels[dimension] = sumToLevel(score);
+      levels[dimension] = valueToLevel(score);
     });
 
-    const userVector = dimensionOrder.map((dimension) => levelNum(levels[dimension]));
+    const userVector = dimensionOrder.map((dimension) => rawScores[dimension]);
     const ranked = normalTypes
       .map((type) => {
         const vector = parsePattern(type.pattern).map(levelNum);
@@ -304,7 +302,7 @@
           distance += diff;
           if (diff === 0) exact += 1;
         }
-        const similarity = Math.max(0, Math.round((1 - distance / (dimensionOrder.length * 2)) * 100));
+        const similarity = Math.max(0, Math.round((1 - distance / (dimensionOrder.length * 3)) * 100));
         return { ...type, ...typeLibrary[type.code], distance, exact, similarity };
       })
       .sort((left, right) => {
