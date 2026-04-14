@@ -321,7 +321,12 @@
       }
 
       .card-intro {
-        display: none;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        overflow: hidden;
+        font-size: 11px;
+        line-height: 1.5;
       }
     }
   </style>
