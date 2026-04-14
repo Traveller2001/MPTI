@@ -18,10 +18,10 @@ MPTI/
 ├─ gallery.html
 ├─ leaderboard.html
 ├─ assets/
-│  ├─ mpti-data.v20260413a.js
-│  ├─ mpti-test.v20260413a.js
-│  ├─ mpti-gallery.v20260413a.js
-│  └─ mpti-leaderboard.v20260413a.js
+│  ├─ mpti-data.v20260414a.js
+│  ├─ mpti-test.v20260414a.js
+│  ├─ mpti-gallery.v20260414a.js
+│  └─ mpti-leaderboard.v20260414a.js
 ├─ docs/
 │  ├─ PROJECT_EXECUTION.md
 │  └─ IMAGE_PROMPTS.md
