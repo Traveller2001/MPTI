@@ -26,8 +26,9 @@ export const PERSONA_CODES = [
   "NULL"
 ];
 
-export function createAnalyticsStore() {
-  return getStore({ name: STORE_NAME, consistency: "strong" });
+export function createAnalyticsStore(options = {}) {
+  const consistency = options?.consistency === "eventual" ? "eventual" : "strong";
+  return getStore({ name: STORE_NAME, consistency });
 }
 
 export function json(data, init = {}) {

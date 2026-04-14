@@ -7,6 +7,8 @@ import {
 } from "./_mpti-analytics.mjs";
 
 const EXPORT_TOKEN_ENV_NAME = "MPTI_ANALYTICS_EXPORT_TOKEN";
+const MAX_SYNC_EXPORT_ROWS = 2000;
+const EXPORT_READ_BATCH_SIZE = 100;
 const QUESTION_IDS = [
   ...Array.from({ length: 18 }, (_, index) => `q${index + 1}`),
   "ghost_gate_q1",
@@ -62,6 +64,25 @@ function parseTimestampParam(value, endOfDay = false) {
   return Number.isFinite(parsed) ? parsed : Number.NaN;
 }
 
+function parseNonNegativeIntegerParam(value, fallback = 0) {
+  if (value === null || value === undefined || value === "") return fallback;
+
+  const text = String(value).trim();
+  if (!/^\d+$/.test(text)) return Number.NaN;
+
+  return Number(text);
+}
+
+function parsePositiveIntegerParam(value) {
+  if (value === null || value === undefined || value === "") return null;
+
+  const text = String(value).trim();
+  if (!/^\d+$/.test(text)) return Number.NaN;
+
+  const number = Number(text);
+  return number > 0 ? number : Number.NaN;
+}
+
 function extractTimestampFromKey(key) {
   const match = key.match(/\/(\d{13})-/);
   return match ? Number(match[1]) : null;
@@ -78,11 +99,15 @@ function sanitizeFilenamePart(value) {
   return String(value).trim().replace(/[^a-zA-Z0-9_-]+/g, "-").replace(/^-+|-+$/g, "") || "all";
 }
 
-function buildFilename({ persona, from, to }) {
+function buildFilename({ persona, from, to, offset, count, totalCount }) {
   const parts = ["mpti-results"];
   if (persona) parts.push(persona.toLowerCase());
   if (from) parts.push(`from-${sanitizeFilenamePart(from)}`);
   if (to) parts.push(`to-${sanitizeFilenamePart(to)}`);
+  if (count > 0 && (offset > 0 || count < totalCount)) {
+    parts.push(`rows-${offset + 1}-${offset + count}`);
+    parts.push(`of-${totalCount}`);
+  }
   parts.push(new Date().toISOString().replace(/[:.]/g, "-"));
   return `${parts.join("-")}.csv`;
 }
@@ -137,36 +162,102 @@ function createCsvRow(key, record) {
   return row;
 }
 
-function buildCsv(rows) {
-  const lines = [
-    CSV_COLUMNS.join(","),
-    ...rows.map((row) => CSV_COLUMNS.map((column) => escapeCsvCell(row[column])).join(","))
-  ];
-
-  return `\uFEFF${lines.join("\r\n")}`;
+function buildCsvLine(row) {
+  return CSV_COLUMNS.map((column) => escapeCsvCell(row[column])).join(",");
 }
 
-async function loadRows(store, keys) {
-  const rows = [];
+function buildChunkExampleUrls(url, totalCount, startOffset = 0) {
+  const examples = [];
 
-  for (let index = 0; index < keys.length; index += 25) {
-    const chunk = keys.slice(index, index + 25);
-    const chunkRows = await Promise.all(
-      chunk.map(async (key) => {
-        const entry = await store.getWithMetadata(key, {
-          type: "json",
-          consistency: "strong"
-        });
-
-        if (!entry || !entry.data || typeof entry.data !== "object") return null;
-        return createCsvRow(key, entry.data);
-      })
-    );
-
-    rows.push(...chunkRows.filter(Boolean));
+  for (
+    let offset = startOffset;
+    offset < totalCount && examples.length < 3;
+    offset += MAX_SYNC_EXPORT_ROWS
+  ) {
+    const chunkUrl = new URL(url.toString());
+    chunkUrl.searchParams.set("format", "csv");
+    chunkUrl.searchParams.set("limit", String(MAX_SYNC_EXPORT_ROWS));
+    chunkUrl.searchParams.set("offset", String(offset));
+    examples.push(chunkUrl.toString());
   }
 
-  return rows;
+  return examples;
+}
+
+function createExportMetadata({
+  url,
+  persona,
+  from,
+  to,
+  offset,
+  limit,
+  totalCount
+}) {
+  const remainingCount = Math.max(totalCount - offset, 0);
+  const effectiveLimit = limit ?? Math.min(remainingCount, MAX_SYNC_EXPORT_ROWS);
+  const nextOffset = offset + effectiveLimit < totalCount ? offset + effectiveLimit : null;
+  const downloadUrl = new URL(url.toString());
+  downloadUrl.searchParams.set("format", "csv");
+  if (limit) {
+    downloadUrl.searchParams.set("limit", String(limit));
+  } else {
+    downloadUrl.searchParams.delete("limit");
+  }
+  downloadUrl.searchParams.set("offset", String(offset));
+
+  const metadata = {
+    ok: true,
+    persona: persona || null,
+    from: from || null,
+    to: to || null,
+    totalCount,
+    remainingCount,
+    offset,
+    limit,
+    maxRowsPerRequest: MAX_SYNC_EXPORT_ROWS,
+    needsChunking: remainingCount > MAX_SYNC_EXPORT_ROWS,
+    downloadUrl: downloadUrl.toString()
+  };
+
+  if (nextOffset !== null) {
+    const nextUrl = new URL(downloadUrl.toString());
+    nextUrl.searchParams.set("offset", String(nextOffset));
+    metadata.nextOffset = nextOffset;
+    metadata.nextDownloadUrl = nextUrl.toString();
+  }
+
+  if (remainingCount > MAX_SYNC_EXPORT_ROWS) {
+    metadata.examples = buildChunkExampleUrls(url, totalCount, offset);
+  }
+
+  return metadata;
+}
+
+function createCsvStream(store, keys) {
+  const encoder = new TextEncoder();
+
+  return new ReadableStream({
+    async start(controller) {
+      controller.enqueue(encoder.encode(`\uFEFF${CSV_COLUMNS.join(",")}\r\n`));
+
+      for (let index = 0; index < keys.length; index += EXPORT_READ_BATCH_SIZE) {
+        const chunk = keys.slice(index, index + EXPORT_READ_BATCH_SIZE);
+        const chunkLines = await Promise.all(
+          chunk.map(async (key) => {
+            const entry = await store.get(key, { type: "json" });
+            if (!entry || typeof entry !== "object") return null;
+            return buildCsvLine(createCsvRow(key, entry));
+          })
+        );
+
+        const lines = chunkLines.filter(Boolean);
+        if (!lines.length) continue;
+        controller.enqueue(encoder.encode(`${lines.join("\r\n")}\r\n`));
+      }
+
+      controller.close();
+    }
+  });
 }
 
 export default async (request) => {
@@ -179,7 +270,7 @@ export default async (request) => {
 
   const url = new URL(request.url);
   const format = (url.searchParams.get("format") || "csv").trim().toLowerCase();
-  if (format !== "csv") {
+  if (format !== "csv" && format !== "json") {
     return json({ error: "Unsupported export format" }, { status: 400 });
   }
 
@@ -209,6 +300,8 @@ export default async (request) => {
 
   const fromRaw = url.searchParams.get("from");
   const toRaw = url.searchParams.get("to");
+  const offset = parseNonNegativeIntegerParam(url.searchParams.get("offset"), 0);
+  const limit = parsePositiveIntegerParam(url.searchParams.get("limit"));
   const fromTimestamp = parseTimestampParam(fromRaw, false);
   const toTimestamp = parseTimestampParam(toRaw, true);
 
@@ -221,9 +314,24 @@ export default async (request) => {
   if (fromTimestamp !== null && toTimestamp !== null && fromTimestamp > toTimestamp) {
     return json({ error: "from must be earlier than or equal to to" }, { status: 400 });
   }
+  if (Number.isNaN(offset)) {
+    return json({ error: "Invalid offset" }, { status: 400 });
+  }
+  if (Number.isNaN(limit)) {
+    return json({ error: "Invalid limit" }, { status: 400 });
+  }
+  if (limit !== null && limit > MAX_SYNC_EXPORT_ROWS) {
+    return json(
+      {
+        error: "limit is too large",
+        maxRowsPerRequest: MAX_SYNC_EXPORT_ROWS
+      },
+      { status: 400 }
+    );
+  }
 
   try {
-    const store = createAnalyticsStore();
+    const store = createAnalyticsStore({ consistency: "eventual" });
     const prefix = persona ? `results/${encodeURIComponent(persona)}/` : "results/";
     const allKeys = await listAllKeys(store, prefix);
     const filteredKeys = allKeys
@@ -240,19 +348,69 @@ export default async (request) => {
         return leftTimestamp - rightTimestamp;
       });
 
-    const rows = await loadRows(store, filteredKeys);
-    const csv = buildCsv(rows);
+    const totalCount = filteredKeys.length;
 
-    return new Response(csv, {
-      headers: {
-        "Cache-Control": "no-store",
-        "Content-Type": "text/csv; charset=utf-8",
-        "Content-Disposition": `attachment; filename="${buildFilename({
+    if (format === "json") {
+      return json(
+        createExportMetadata({
+          url,
           persona,
           from: fromRaw,
-          to: toRaw
-        })}"`
-      }
+          to: toRaw,
+          offset,
+          limit,
+          totalCount
+        })
+      );
+    }
+
+    const remainingCount = Math.max(totalCount - offset, 0);
+
+    if (limit === null && remainingCount > MAX_SYNC_EXPORT_ROWS) {
+      return json(
+        {
+          error: "Export too large for a single synchronous request",
+          totalCount,
+          remainingCount,
+          maxRowsPerRequest: MAX_SYNC_EXPORT_ROWS,
+          detail: "Retry with limit and offset, or narrow persona/from/to filters.",
+          examples: buildChunkExampleUrls(url, totalCount, offset)
+        },
+        { status: 413 }
+      );
+    }
+
+    const selectedKeys =
+      limit === null
+        ? filteredKeys.slice(offset)
+        : filteredKeys.slice(offset, offset + limit);
+    const headers = new Headers({
+      "Cache-Control": "no-store",
+      "Content-Type": "text/csv; charset=utf-8",
+      "Content-Disposition": `attachment; filename="${buildFilename({
+        persona,
+        from: fromRaw,
+        to: toRaw,
+        offset,
+        count: selectedKeys.length,
+        totalCount
+      })}"`
+    });
+    headers.set("X-MPTI-Export-Total-Count", String(totalCount));
+    headers.set("X-MPTI-Export-Offset", String(offset));
+    headers.set("X-MPTI-Export-Returned-Count", String(selectedKeys.length));
+    headers.set("X-MPTI-Export-Max-Rows-Per-Request", String(MAX_SYNC_EXPORT_ROWS));
+    headers.set("X-MPTI-Export-Has-More", String(offset + selectedKeys.length < totalCount));
+    if (limit !== null) {
+      headers.set("X-MPTI-Export-Limit", String(limit));
+    }
+    if (offset + selectedKeys.length < totalCount) {
+      const nextOffset = offset + selectedKeys.length;
+      headers.set("X-MPTI-Export-Next-Offset", String(nextOffset));
+    }
+
+    return new Response(createCsvStream(store, selectedKeys), {
+      headers
     });
   } catch (error) {
     return json(
