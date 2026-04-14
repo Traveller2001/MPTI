@@ -307,6 +307,27 @@
         font-size: 28px;
       }
 
+      .filters {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 8px;
+        align-items: stretch;
+      }
+
+      .filter-btn {
+        width: 100%;
+        min-width: 0;
+        padding: 8px 0;
+      }
+
+      .filters .filter-btn:nth-child(-n+3) {
+        grid-column: span 4;
+      }
+
+      .filters .filter-btn:nth-child(n+4) {
+        grid-column: span 3;
+      }
+
       .grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;

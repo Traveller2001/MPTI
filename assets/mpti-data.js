@@ -555,7 +555,7 @@
   const specialLogic = {
     gateQuestionId: "ghost_gate_q1",
     insertQuestionId: "ghost_gate_q2",
-    gateValues: [3, 4],
+    gateValues: [4],
     triggerQuestionId: "ghost_gate_q2",
     triggerValue: 2,
     hiddenTypeCode: "WIFI"
