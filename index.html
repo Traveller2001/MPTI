@@ -470,6 +470,72 @@
       white-space: pre-wrap;
     }
 
+    .result-feedback {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      display: grid;
+      gap: 12px;
+    }
+
+    .feedback-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .feedback-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .feedback-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .feedback-btn {
+      min-width: 88px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      font-weight: 700;
+      box-shadow: none;
+    }
+
+    .feedback-btn.active-accurate {
+      background: #0f766e;
+      border-color: #0f766e;
+      color: #fff;
+    }
+
+    .feedback-btn.active-inaccurate {
+      background: #dc2626;
+      border-color: #dc2626;
+      color: #fff;
+    }
+
+    .feedback-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .feedback-note.is-pending {
+      color: var(--accent-strong);
+    }
+
+    .feedback-note.is-error {
+      color: #b91c1c;
+    }
+
     .dim-box h3,
     .note-box h3 {
       font-size: 16px;
@@ -675,6 +741,18 @@
         font-size: clamp(22px, 6vw, 32px);
       }
 
+      .feedback-actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .feedback-btn {
+        min-width: 0;
+        width: 100%;
+        padding: 10px 8px;
+      }
+
       .result-action-group {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -750,6 +828,16 @@
               <div class="type-subname" id="resultTypeSub"></div>
               <div class="type-desc-inline">
                 <p id="resultDesc"></p>
+              </div>
+              <div class="result-feedback">
+                <div class="feedback-head">
+                  <div class="feedback-title">这个结果你觉得：</div>
+                  <div class="feedback-actions">
+                    <button id="feedbackAccurateBtn" class="feedback-btn" type="button">准</button>
+                    <button id="feedbackInaccurateBtn" class="feedback-btn" type="button">不准</button>
+                  </div>
+                </div>
+                <p id="feedbackNote" class="feedback-note">用于匿名校准画像，不影响你的测试结果。</p>
               </div>
             </div>
           </div>

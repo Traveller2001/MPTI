@@ -22,7 +22,10 @@
     currentIndex: 0,
     navigating: false,
     resultLogged: false,
-    visitLogged: false
+    visitLogged: false,
+    resultRecordKey: null,
+    feedbackVerdict: null,
+    feedbackSaving: false
   };
 
   const screens = {
@@ -77,17 +80,19 @@
   }
 
   async function trackAnalytics(payload) {
-    if (!canUseAnalytics()) return;
+    if (!canUseAnalytics()) return null;
     try {
-      await fetch(ANALYTICS_ENDPOINT, {
+      const response = await fetch(ANALYTICS_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
         keepalive: true
       });
+      if (response.ok) return response.json();
     } catch (_) {
       // 埋点失败不影响页面主流程
     }
+    return null;
   }
 
   function recordVisit() {
@@ -102,13 +107,19 @@
   function recordResult(result) {
     if (app.resultLogged) return;
     app.resultLogged = true;
-    void trackAnalytics({
+    trackAnalytics({
       kind: "result",
       personaCode: result.finalType.code,
       personaName: result.finalType.cn,
       special: result.special,
       similarity: result.bestNormal ? result.bestNormal.similarity : null,
       answers: buildResultAnswers()
+    }).then((data) => {
+      if (data && data.resultKey) {
+        app.resultRecordKey = data.resultKey;
+        app.feedbackVerdict = "accurate";
+        updateFeedbackUI("accurate");
+      }
     });
   }
 
@@ -416,6 +427,7 @@
     renderPoster(type);
     renderDimList(result);
     showScreen("result");
+    updateFeedbackUI("accurate");
     recordResult(result);
   }
 
@@ -423,6 +435,10 @@
     app.answers = {};
     app.currentIndex = 0;
     app.resultLogged = false;
+    app.resultRecordKey = null;
+    app.feedbackVerdict = null;
+    app.feedbackSaving = false;
+    resetFeedbackUI();
     const shuffledRegular = shuffle(questions);
     const insertIndex = Math.floor(Math.random() * shuffledRegular.length) + 1;
     app.shuffledQuestions = [
@@ -433,6 +449,78 @@
     renderCurrentQuestion();
     showScreen("test");
   }
+
+  const feedbackAccurateBtn = document.getElementById("feedbackAccurateBtn");
+  const feedbackInaccurateBtn = document.getElementById("feedbackInaccurateBtn");
+  const feedbackNote = document.getElementById("feedbackNote");
+
+  function resetFeedbackUI() {
+    feedbackAccurateBtn.classList.remove("active-accurate");
+    feedbackInaccurateBtn.classList.remove("active-inaccurate");
+    feedbackAccurateBtn.disabled = false;
+    feedbackInaccurateBtn.disabled = false;
+    feedbackAccurateBtn.textContent = "准";
+    feedbackInaccurateBtn.textContent = "不准";
+    feedbackNote.textContent = "用于匿名校准画像，不影响你的测试结果。";
+    feedbackNote.className = "feedback-note";
+  }
+
+  function updateFeedbackUI(verdict) {
+    feedbackAccurateBtn.classList.toggle("active-accurate", verdict === "accurate");
+    feedbackInaccurateBtn.classList.toggle("active-inaccurate", verdict === "inaccurate");
+    feedbackAccurateBtn.disabled = false;
+    feedbackInaccurateBtn.disabled = false;
+    feedbackAccurateBtn.textContent = "准";
+    feedbackInaccurateBtn.textContent = "不准";
+    feedbackNote.className = "feedback-note";
+    feedbackNote.textContent = verdict === "accurate"
+      ? "已记录：你觉得这次结果准"
+      : "已记录：你觉得这次结果不准";
+  }
+
+  async function sendFeedback(verdict) {
+    if (app.feedbackSaving) return;
+    if (!app.resultRecordKey) {
+      feedbackNote.textContent = "结果尚未上传完成，请稍后再试";
+      feedbackNote.className = "feedback-note is-error";
+      return;
+    }
+
+    app.feedbackSaving = true;
+    feedbackAccurateBtn.disabled = true;
+    feedbackInaccurateBtn.disabled = true;
+    if (verdict === "accurate") {
+      feedbackAccurateBtn.textContent = "提交中...";
+    } else {
+      feedbackInaccurateBtn.textContent = "提交中...";
+    }
+    feedbackNote.textContent = "";
+    feedbackNote.className = "feedback-note is-pending";
+
+    const data = await trackAnalytics({
+      kind: "feedback",
+      resultKey: app.resultRecordKey,
+      verdict: verdict
+    });
+
+    app.feedbackSaving = false;
+
+    if (data && data.ok) {
+      app.feedbackVerdict = verdict;
+      updateFeedbackUI(verdict);
+    } else {
+      if (app.feedbackVerdict) {
+        updateFeedbackUI(app.feedbackVerdict);
+      } else {
+        resetFeedbackUI();
+      }
+      feedbackNote.textContent = "记录失败，请重试";
+      feedbackNote.className = "feedback-note is-error";
+    }
+  }
+
+  feedbackAccurateBtn.addEventListener("click", () => sendFeedback("accurate"));
+  feedbackInaccurateBtn.addEventListener("click", () => sendFeedback("inaccurate"));
 
   prevBtn.addEventListener("click", () => {
     if (app.currentIndex > 0) {

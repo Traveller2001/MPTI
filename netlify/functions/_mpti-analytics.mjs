@@ -63,21 +63,36 @@ function normalizeIsoTimestamp(value) {
   return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : null;
 }
 
+function createEmptyFeedbackCounts() {
+  return Object.fromEntries(PERSONA_CODES.map((code) => [code, { accurate: 0, inaccurate: 0 }]));
+}
+
 export function createEmptySummary() {
   return {
     schemaVersion: SUMMARY_SCHEMA_VERSION,
     totalVisits: 0,
     totalResults: 0,
     lastUpdatedAt: null,
-    counts: createEmptyCounts()
+    counts: createEmptyCounts(),
+    feedback: {
+      total: 0,
+      accurate: 0,
+      inaccurate: 0,
+      byPersona: createEmptyFeedbackCounts()
+    }
   };
 }
 
 export function cloneSummary(summary) {
   const normalized = normalizeSummary(summary);
+  const byPersona = {};
+  for (const code of PERSONA_CODES) {
+    byPersona[code] = { ...normalized.feedback.byPersona[code] };
+  }
   return {
     ...normalized,
-    counts: { ...normalized.counts }
+    counts: { ...normalized.counts },
+    feedback: { ...normalized.feedback, byPersona }
   };
 }
 
@@ -93,6 +108,21 @@ export function normalizeSummary(summary) {
   if (summary.counts && typeof summary.counts === "object") {
     for (const code of PERSONA_CODES) {
       next.counts[code] = normalizeNonNegativeInteger(summary.counts[code]);
+    }
+  }
+
+  if (summary.feedback && typeof summary.feedback === "object") {
+    next.feedback.total = normalizeNonNegativeInteger(summary.feedback.total);
+    next.feedback.accurate = normalizeNonNegativeInteger(summary.feedback.accurate);
+    next.feedback.inaccurate = normalizeNonNegativeInteger(summary.feedback.inaccurate);
+    if (summary.feedback.byPersona && typeof summary.feedback.byPersona === "object") {
+      for (const code of PERSONA_CODES) {
+        const entry = summary.feedback.byPersona[code];
+        if (entry && typeof entry === "object") {
+          next.feedback.byPersona[code].accurate = normalizeNonNegativeInteger(entry.accurate);
+          next.feedback.byPersona[code].inaccurate = normalizeNonNegativeInteger(entry.inaccurate);
+        }
+      }
     }
   }
 
@@ -126,6 +156,25 @@ export function addResultToSummary(summary, personaCode, recordedAt) {
   return next;
 }
 
+export function addFeedbackToSummary(summary, personaCode, verdict, previousVerdict) {
+  if (!PERSONA_CODES.includes(personaCode)) {
+    throw new Error(`Unknown personaCode: ${personaCode}`);
+  }
+
+  const next = cloneSummary(summary);
+
+  if (previousVerdict === "accurate" || previousVerdict === "inaccurate") {
+    next.feedback.total -= 1;
+    next.feedback[previousVerdict] -= 1;
+    next.feedback.byPersona[personaCode][previousVerdict] -= 1;
+  }
+
+  next.feedback.total += 1;
+  next.feedback[verdict] += 1;
+  next.feedback.byPersona[personaCode][verdict] += 1;
+  return next;
+}
+
 function extractTimestamp(key) {
   const match = key.match(/\/(\d{13})-/);
   return match ? Number(match[1]) : 0;
@@ -140,10 +189,13 @@ export function buildPublicSummary(summary) {
   const normalized = normalizeSummary(summary);
   const ranking = PERSONA_CODES.map((code) => {
     const count = normalized.counts[code];
+    const fb = normalized.feedback.byPersona[code];
     return {
       code,
       count,
-      share: normalized.totalResults ? Number(((count / normalized.totalResults) * 100).toFixed(1)) : 0
+      share: normalized.totalResults ? Number(((count / normalized.totalResults) * 100).toFixed(1)) : 0,
+      feedbackAccurate: fb.accurate,
+      feedbackInaccurate: fb.inaccurate
     };
   }).sort((left, right) => {
     if (right.count !== left.count) return right.count - left.count;
@@ -155,7 +207,12 @@ export function buildPublicSummary(summary) {
     totalResults: normalized.totalResults,
     uniquePersonasHit: ranking.filter((item) => item.count > 0).length,
     lastUpdatedAt: normalized.lastUpdatedAt,
-    ranking
+    ranking,
+    feedback: {
+      total: normalized.feedback.total,
+      accurate: normalized.feedback.accurate,
+      inaccurate: normalized.feedback.inaccurate
+    }
   };
 }
 
@@ -207,6 +264,20 @@ export async function rebuildSummaryFromEvents(store) {
     const timestamp = extractTimestamp(key);
     if (timestamp) {
       summary.lastUpdatedAt = getLatestIsoTimestamp(summary.lastUpdatedAt, new Date(timestamp).toISOString());
+    }
+
+    try {
+      const entry = await store.get(key, { type: "json" });
+      if (entry && entry.feedback && typeof entry.feedback === "object") {
+        const verdict = entry.feedback.verdict;
+        if (verdict === "accurate" || verdict === "inaccurate") {
+          summary.feedback.total += 1;
+          summary.feedback[verdict] += 1;
+          summary.feedback.byPersona[code][verdict] += 1;
+        }
+      }
+    } catch (_) {
+      // skip unreadable entries during rebuild
     }
   }
 

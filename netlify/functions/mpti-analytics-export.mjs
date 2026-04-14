@@ -24,7 +24,10 @@ const CSV_COLUMNS = [
     `${questionId}_value`,
     `${questionId}_option_code`,
     `${questionId}_option_label`
-  ])
+  ]),
+  "feedback_verdict",
+  "feedback_recorded_at",
+  "feedback_updated_at"
 ];
 
 function getRequestToken(request, url) {
@@ -125,6 +128,11 @@ function createCsvRow(key, record) {
     row[`${questionId}_option_label`] =
       typeof answer?.selectedOptionLabel === "string" ? answer.selectedOptionLabel : "";
   }
+
+  const fb = record.feedback && typeof record.feedback === "object" ? record.feedback : {};
+  row.feedback_verdict = typeof fb.verdict === "string" ? fb.verdict : "";
+  row.feedback_recorded_at = typeof fb.recordedAt === "string" ? fb.recordedAt : "";
+  row.feedback_updated_at = typeof fb.updatedAt === "string" ? fb.updatedAt : "";
 
   return row;
 }

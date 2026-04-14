@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import {
   PERSONA_CODES,
+  addFeedbackToSummary,
   addResultToSummary,
   addVisitToSummary,
   createAnalyticsStore,
@@ -85,18 +86,57 @@ export default async (request) => {
         return json({ error: "Unknown personaCode" }, { status: 400 });
       }
 
-      await updateSummarySnapshot(store, (summary) =>
-        addResultToSummary(summary, personaCode, recordedAt)
-      );
-      await store.setJSON(`results/${encodeURIComponent(personaCode)}/${now}-${id}.json`, {
+      await updateSummarySnapshot(store, (summary) => {
+        const next = addResultToSummary(summary, personaCode, recordedAt);
+        return addFeedbackToSummary(next, personaCode, "accurate", null);
+      });
+      const resultKey = `results/${encodeURIComponent(personaCode)}/${now}-${id}.json`;
+      await store.setJSON(resultKey, {
         kind: "result",
         personaCode,
         personaName: typeof payload.personaName === "string" ? payload.personaName : "",
         special: Boolean(payload.special),
         similarity: Number.isFinite(payload.similarity) ? payload.similarity : null,
         answers: normalizeAnswers(payload.answers),
+        feedback: { verdict: "accurate", recordedAt, updatedAt: null },
         recordedAt
       });
+
+      return json({ ok: true, resultKey });
+    }
+
+    if (payload?.kind === "feedback") {
+      const resultKey = typeof payload.resultKey === "string" ? payload.resultKey : "";
+      const verdict = payload.verdict;
+
+      if (!resultKey.startsWith("results/")) {
+        return json({ error: "Invalid resultKey" }, { status: 400 });
+      }
+      if (verdict !== "accurate" && verdict !== "inaccurate") {
+        return json({ error: "Invalid verdict" }, { status: 400 });
+      }
+
+      const entry = await store.get(resultKey, { type: "json", consistency: "strong" });
+      if (!entry || entry.kind !== "result") {
+        return json({ error: "Result record not found" }, { status: 404 });
+      }
+
+      const prev = entry.feedback && typeof entry.feedback === "object" ? entry.feedback : {};
+      const previousVerdict = prev.verdict;
+      entry.feedback = {
+        verdict,
+        recordedAt: prev.recordedAt || recordedAt,
+        updatedAt: prev.recordedAt ? recordedAt : null
+      };
+
+      await store.setJSON(resultKey, entry);
+
+      const personaCode = typeof entry.personaCode === "string" ? entry.personaCode : "";
+      if (ALLOWED_RESULT_CODES.has(personaCode)) {
+        await updateSummarySnapshot(store, (summary) =>
+          addFeedbackToSummary(summary, personaCode, verdict, previousVerdict)
+        );
+      }
 
       return json({ ok: true });
     }
