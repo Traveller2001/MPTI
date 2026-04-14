@@ -453,8 +453,10 @@
   const feedbackAccurateBtn = document.getElementById("feedbackAccurateBtn");
   const feedbackInaccurateBtn = document.getElementById("feedbackInaccurateBtn");
   const feedbackNote = document.getElementById("feedbackNote");
+  const feedbackWrap = feedbackAccurateBtn.closest(".result-feedback");
 
   function resetFeedbackUI() {
+    feedbackWrap.style.display = "";
     feedbackAccurateBtn.classList.remove("active-accurate");
     feedbackInaccurateBtn.classList.remove("active-inaccurate");
     feedbackAccurateBtn.disabled = false;
@@ -474,8 +476,12 @@
     feedbackInaccurateBtn.textContent = "不准";
     feedbackNote.className = "feedback-note";
     feedbackNote.textContent = verdict === "accurate"
-      ? "已记录：你觉得这次结果准"
-      : "已记录：你觉得这次结果不准";
+      ? "你觉得这次结果准"
+      : "你觉得这次结果不准";
+  }
+
+  function hideFeedbackUI() {
+    feedbackWrap.style.display = "none";
   }
 
   async function sendFeedback(verdict) {
@@ -507,7 +513,7 @@
 
     if (data && data.ok) {
       app.feedbackVerdict = verdict;
-      updateFeedbackUI(verdict);
+      hideFeedbackUI();
     } else {
       if (app.feedbackVerdict) {
         updateFeedbackUI(app.feedbackVerdict);
