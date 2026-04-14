@@ -463,7 +463,7 @@
     feedbackInaccurateBtn.disabled = false;
     feedbackAccurateBtn.textContent = "准";
     feedbackInaccurateBtn.textContent = "不准";
-    feedbackNote.textContent = "用于匿名校准画像，不影响你的测试结果。";
+    feedbackNote.textContent = "";
     feedbackNote.className = "feedback-note";
   }
 
