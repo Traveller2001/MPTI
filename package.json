@@ -1,6 +1,10 @@
 {
   "name": "mpti-site",
   "private": true,
+  "scripts": {
+    "build": "node scripts/revision-static.mjs",
+    "refresh:static": "node scripts/revision-static.mjs"
+  },
   "dependencies": {
     "@netlify/blobs": "^10.0.11"
   }

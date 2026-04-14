@@ -542,7 +542,7 @@
     triggerValue: 2,
     hiddenTypeCode: "WIFI"
   };
-  const imageAssetVersion = "20260413-webp512-whitepad2";
+  const imageAssetVersion = "42bd50e89870";
 
   Object.values(typeLibrary).forEach((type) => {
     type.image = `./images/${type.code}/${type.code}.webp?v=${imageAssetVersion}`;
